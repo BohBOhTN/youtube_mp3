@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube to MP3 Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .link-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        .status {
+            margin-left: 20px;
+            font-weight: bold;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+        .download-btn {
+            margin-left: 10px;
+            padding: 5px 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .download-btn:disabled {
+            background-color: #ddd;
+        }
+    </style>
+</head>
+<body>
+    <h1>YouTube to MP3 Converter</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" name="file" accept=".txt" required>
+        <button type="submit">Upload</button>
+    </form>
+
+    {% if links %}
+        <h2>Extracted Links</h2>
+        <div id="links-container">
+            {% for link in links %}
+                <div class="link-box" data-link="{{ link }}">
+                    <span>{{ link }}</span>
+                    <button class="convert-btn">Convert to MP3</button>
+                    <span class="status"></span>
+                    <a href="#" class="download-btn" style="display: none;" target="_blank">Download MP3</a>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+        const convertButtons = document.querySelectorAll('.convert-btn');
+
+        convertButtons.forEach(button => {
+        button.addEventListener('click', () => {
+        const linkBox = button.closest('.link-box');
+        const link = linkBox.dataset.link;
+        const statusSpan = linkBox.querySelector('.status');
+
+        statusSpan.textContent = "Processing...";
+        statusSpan.classList.remove('success', 'error');
+
+        fetch(`/process-link?link=${encodeURIComponent(link)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    statusSpan.textContent = "Download ready!";
+                    statusSpan.classList.add('success');
+
+                    // Disable the button once the link is processed
+                    button.disabled = true;
+                    button.textContent = "Already Processed";
+
+                    // Create the download link and display it
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = `/media/${data.mp3_url}`;
+                    downloadLink.textContent = "Download MP3";
+                    downloadLink.classList.add('download-link');
+                    
+                    // Append the download link to the current link box
+                    linkBox.appendChild(downloadLink);
+                } else {
+                    statusSpan.textContent = "Error processing!";
+                    statusSpan.classList.add('error');
+                }
+            })
+            .catch(() => {
+                statusSpan.textContent = "Error processing!";
+                statusSpan.classList.add('error');
+            });
+        });
+        });
+        });
+
+
+    </script>
+</body>
+</html>
