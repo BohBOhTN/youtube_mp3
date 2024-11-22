@@ -1,0 +1,9 @@
+Django
+djangorestframework
+gunicorn
+youtube-dl
+pytube
+django-environ
+
+requests
+whitenoise
