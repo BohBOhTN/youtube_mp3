@@ -45,10 +45,10 @@
 </head>
 <body>
     <h1>YouTube to MP3 Converter</h1>
-    <form method="post" enctype="multipart/form-data">
+    <form method="post">
         {% csrf_token %}
-        <input type="file" name="file" accept=".txt" required>
-        <button type="submit">Upload</button>
+        <textarea name="links" rows="10" cols="50" placeholder="Paste one YouTube link per line" required></textarea><br><br>
+        <button type="submit">Submit</button>
     </form>
 
     {% if links %}
@@ -109,8 +109,6 @@
         });
         });
         });
-
-
     </script>
 </body>
 </html>

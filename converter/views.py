@@ -1,20 +1,14 @@
 import os
 import subprocess
 from django.shortcuts import render
-from django.core.files.storage import FileSystemStorage
 from django.http import JsonResponse
 from django.conf import settings
 
 def upload_file(request):
-    if request.method == 'POST' and request.FILES.get('file'):
-        file = request.FILES['file']
-        fs = FileSystemStorage()
-        filename = fs.save(file.name, file)
-        file_path = os.path.join(fs.location, filename)
-
-        # Read and process the uploaded file
-        with open(file_path, 'r') as f:
-            links = [line.strip() for line in f if line.strip()]
+    if request.method == 'POST':
+        # Get the links from the textarea input (submitted as a string)
+        links_text = request.POST.get('links', '')
+        links = [link.strip() for link in links_text.splitlines() if link.strip()]
 
         # Pass the links to the frontend
         return render(request, 'upload.html', {'links': links})
