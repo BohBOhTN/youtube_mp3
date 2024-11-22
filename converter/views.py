@@ -24,10 +24,28 @@ def process_link(request):
         os.makedirs(output_dir)
 
     try:
-        # Run yt-dlp to process the link
-        mp3_filename = f"{link.split('=')[-1]}.mp3"  # Example to use video ID or something else as filename
+        # Get the YouTube video title
+        result = subprocess.run(
+            [
+                "yt-dlp",
+                "--get-title",
+                link,
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=True,
+            text=True,
+        )
+        video_title = result.stdout.strip()
+        
+        # Sanitize the title to make it safe for filenames
+        sanitized_title = "".join(c if c.isalnum() or c in " _-" else "_" for c in video_title)
+
+        # Set the MP3 filename using the sanitized title
+        mp3_filename = f"{sanitized_title}.mp3"
         mp3_path = os.path.join(output_dir, mp3_filename)
 
+        # Download the MP3 using yt-dlp
         subprocess.run(
             [
                 "yt-dlp",
@@ -40,13 +58,13 @@ def process_link(request):
         )
 
         # Return the correct relative URL for the MP3 file
-        mp3_url = f"downloaded_mp3s/{mp3_filename}"  # Use the relative path without 'media/' twice
+        mp3_url = f"downloaded_mp3s/{mp3_filename}"
         
         return JsonResponse({
             'status': 'success',
             'message': 'Downloaded successfully!',
-            'mp3_url': mp3_url,  # Return the correct URL for downloading
-            'disable_button': True  # Send a flag to disable the button
+            'mp3_url': mp3_url,  # URL for downloading the MP3
+            'disable_button': True  # Flag to disable the button after processing
         })
 
     except subprocess.CalledProcessError as e:
